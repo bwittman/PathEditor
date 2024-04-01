@@ -63,7 +63,15 @@ public class PathEditor {
         return;
 
       pathVariables = pathVariables.trim();
-      pathVariables = pathVariables.replaceFirst("(?i)" + Pattern.quote(value) + ";|" + Pattern.quote(value) + "$", "");
+      // Replaces value, case-insensitively, even if there are extra quotes
+      // The value is either before a semicolon or is at the end of the list
+      // It would be slicker to match a semicolon at the beginning of the value, but then
+      // it might match a prefix of some other string
+      pathVariables = pathVariables.replaceFirst("(?i)\"?" + Pattern.quote(value) + "\"?(?:$|;)", "");
+
+      // Consequently, we have to clean off the semicolon if the value was the last thing in the list
+      while (pathVariables.endsWith(";"))
+        pathVariables = pathVariables.substring(0, pathVariables.length() - 1);
 
       RegistryAccess.writeString(WinReg.HKEY_LOCAL_MACHINE, ENVIRONMENT_KEY, "Path", pathVariables);
     }
